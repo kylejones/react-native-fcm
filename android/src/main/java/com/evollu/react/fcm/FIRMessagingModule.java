@@ -1,6 +1,7 @@
 package com.evollu.react.fcm;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,10 +25,12 @@ import com.google.firebase.messaging.RemoteMessage.Notification;
 
 import android.app.Application;
 import android.os.Bundle;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import android.content.Context;
 
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -93,6 +96,45 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
     @ReactMethod
     public void cancelAllLocalNotifications() {
       mFIRLocalMessagingHelper.cancelAllLocalNotifications();
+    }
+
+    public Intent getIntent(PendingIntent pendingIntent) throws IllegalStateException {
+        try {
+            Method getIntent = PendingIntent.class.getDeclaredMethod("getIntent");
+            return (Intent) getIntent.invoke(pendingIntent);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @ReactMethod
+    public void getDeliveredNotifications(Promise promise) {
+        WritableArray array = Arguments.createArray();
+        StatusBarNotification[] statusBarNotifications = mFIRLocalMessagingHelper.getDeliveredNotifications();
+        for(StatusBarNotification statusBarNotification:statusBarNotifications) {
+            WritableMap params = Arguments.createMap();
+            WritableMap fcmData = Arguments.createMap();
+
+            android.app.Notification notification = statusBarNotification.getNotification();
+            PendingIntent pendingIntent = notification.contentIntent;
+            Intent intent = getIntent(pendingIntent);
+
+            if (intent.hasExtra("data")) {
+                String data = intent.getStringExtra("data");
+                params.putString("data", data);
+            }
+
+            fcmData.putString("title", notification.extras.getString("android.title"));
+            fcmData.putString("body", notification.extras.getString("android.text"));
+            //notification.getSmallIcon()
+            //notification.color
+            fcmData.putString("tag", statusBarNotification.getTag());
+            fcmData.putString("action", intent.getAction());
+            params.putMap("fcm", fcmData);
+
+            array.pushMap(params);
+        }
+        promise.resolve(array);
     }
 
     @ReactMethod

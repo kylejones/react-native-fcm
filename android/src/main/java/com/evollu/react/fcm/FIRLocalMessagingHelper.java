@@ -14,6 +14,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.service.notification.StatusBarNotification;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.Patterns;
@@ -281,6 +282,14 @@ public class FIRLocalMessagingHelper {
         }
         editor.clear();
         editor.apply();
+    }
+
+    public StatusBarNotification[] getDeliveredNotifications() {
+        NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return notificationManager.getActiveNotifications();
+        }
+        return null;
     }
 
     public void removeDeliveredNotification(String notificationId){
