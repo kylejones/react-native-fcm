@@ -338,19 +338,28 @@ RCT_EXPORT_METHOD(scheduleLocalNotification:(id)data resolver:(RCTPromiseResolve
 RCT_EXPORT_METHOD(getDeliveredNotifications:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
   if([UNUserNotificationCenter currentNotificationCenter] != nil) {
-    [[UNUserNotificationCenter currentNotificationCenter] getDeliveredNotificationsWithCompletionHandler:^(NSArray<UNNotification *> * _Nonnull unNotifs) {
-      NSMutableArray *deliveredNotifs = [[NSMutableArray alloc] init];
-      for (UNNotification *notif in unNotifs) {
-        [deliveredNotifs addObject:@{
-                                     @"native_id": notif.request.identifier,
-                                     @"content": notif.request.content.userInfo,
-                                     }];
-      }
-      resolve(deliveredNotifs);
+    [[UNUserNotificationCenter currentNotificationCenter] getDeliveredNotificationsWithCompletionHandler:^(NSArray<UNNotification *> * _Nonnull notifications) {
+      NSMutableArray *deliveredNotifications = [[NSMutableArray alloc] init];
+      for (UNNotification *notification in notifications) {
+        NSMutableDictionary *deliveredNotification = [[NSMutableDictionary alloc] init];
+
+        NSDictionary *userInfo = notification.request.content.userInfo;
+        if (userInfo[@"data"]) {
+          deliveredNotification[@"data"] = userInfo[@"data"];
+        }
+
+        NSDictionary *fcm = @{
+                              @"title": notification.request.content.title,
+                              @"body": notification.request.content.body
+                              };
+        deliveredNotification[@"fcm"] = fcm;
+
+        [deliveredNotifications addObject:deliveredNotification];      }
+      resolve(deliveredNotifications);
     }];
   } else {
-    NSArray *deliveredNotifs = [[NSArray alloc] init];
-    resolve(deliveredNotifs);
+    NSArray *deliveredNotifications = [[NSArray alloc] init];
+    resolve(deliveredNotifications);
   }
 }
 
