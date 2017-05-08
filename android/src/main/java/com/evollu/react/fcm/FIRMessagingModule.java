@@ -98,7 +98,7 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
       mFIRLocalMessagingHelper.cancelAllLocalNotifications();
     }
 
-    public Intent getIntent(PendingIntent pendingIntent) throws IllegalStateException {
+    private Intent getIntent(PendingIntent pendingIntent) throws IllegalStateException {
         try {
             Method getIntent = PendingIntent.class.getDeclaredMethod("getIntent");
             return (Intent) getIntent.invoke(pendingIntent);
@@ -124,10 +124,9 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
                 params.putString("data", data);
             }
 
-            fcmData.putString("title", notification.extras.getString("android.title"));
-            fcmData.putString("body", notification.extras.getString("android.text"));
-            //notification.getSmallIcon()
-            //notification.color
+            Bundle extras = notification.extras;
+            fcmData.putString("title", extras.getString(android.app.Notification.EXTRA_TITLE));
+            fcmData.putString("body", extras.getString(android.app.Notification.EXTRA_TEXT));
             fcmData.putString("tag", statusBarNotification.getTag());
             fcmData.putString("action", intent.getAction());
             params.putMap("fcm", fcmData);
