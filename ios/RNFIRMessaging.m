@@ -339,19 +339,22 @@ RCT_EXPORT_METHOD(getDeliveredNotifications:(RCTPromiseResolveBlock)resolve reje
 {
   if([UNUserNotificationCenter currentNotificationCenter] != nil) {
     [[UNUserNotificationCenter currentNotificationCenter] getDeliveredNotificationsWithCompletionHandler:^(NSArray<UNNotification *> * _Nonnull notifications) {
-      NSMutableArray *deliveredNotifications = [[NSMutableArray alloc] init];
-      for (UNNotification *notification in notifications) {
-        NSMutableDictionary *deliveredNotification = [[NSMutableDictionary alloc] init];
+      NSMutableArray * deliveredNotifications = [[NSMutableArray alloc] init];
+      for (UNNotification * notification in notifications) {
+        NSMutableDictionary * deliveredNotification = [[NSMutableDictionary alloc] init];
 
-        NSDictionary *userInfo = notification.request.content.userInfo;
+        NSMutableDictionary * userInfo = [notification.request.content.userInfo mutableCopy];
         if (userInfo[@"data"]) {
           deliveredNotification[@"data"] = userInfo[@"data"];
         }
 
-        NSDictionary *fcm = @{
-                              @"title": notification.request.content.title,
-                              @"body": notification.request.content.body
-                              };
+        NSMutableDictionary * fcm = [[NSMutableDictionary alloc] init];
+        if (notification.request.content.title) {
+          fcm[@"title"] = notification.request.content.title;
+        }
+        if (notification.request.content.body) {
+          fcm[@"@body"] = notification.request.content.body;
+        }
         deliveredNotification[@"fcm"] = fcm;
 
         [deliveredNotifications addObject:deliveredNotification];      }
