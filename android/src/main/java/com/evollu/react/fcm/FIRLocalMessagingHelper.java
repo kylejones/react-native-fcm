@@ -286,7 +286,7 @@ public class FIRLocalMessagingHelper {
 
     public StatusBarNotification[] getDeliveredNotifications() {
         NotificationManager notificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && false) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return notificationManager.getActiveNotifications();
         }
         return new StatusBarNotification[0];
