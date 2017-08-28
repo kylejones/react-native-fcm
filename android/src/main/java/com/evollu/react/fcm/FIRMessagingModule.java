@@ -117,22 +117,26 @@ public class FIRMessagingModule extends ReactContextBaseJavaModule implements Li
 
             android.app.Notification notification = statusBarNotification.getNotification();
             PendingIntent pendingIntent = notification.contentIntent;
-            Intent intent = getIntent(pendingIntent);
+            try {
+              Intent intent = getIntent(pendingIntent);
 
-            if (intent.hasExtra("data")) {
-                String data = intent.getStringExtra("data");
-                params.putString("data", data);
+              if (intent.hasExtra("data")) {
+                  String data = intent.getStringExtra("data");
+                  params.putString("data", data);
+              }
+
+              Bundle extras = notification.extras;
+              fcmData.putString("title", extras.getString(android.app.Notification.EXTRA_TITLE));
+              fcmData.putString("body", extras.getString(android.app.Notification.EXTRA_TEXT));
+              fcmData.putString("tag", statusBarNotification.getTag());
+              fcmData.putString("action", intent.getAction());
+              params.putMap("fcm", fcmData);
+
+              array.pushMap(params);
+            } catch(IllegalStateException | SecurityException e) {
+              Log.e(TAG, e.getMessage());
             }
-
-            Bundle extras = notification.extras;
-            fcmData.putString("title", extras.getString(android.app.Notification.EXTRA_TITLE));
-            fcmData.putString("body", extras.getString(android.app.Notification.EXTRA_TEXT));
-            fcmData.putString("tag", statusBarNotification.getTag());
-            fcmData.putString("action", intent.getAction());
-            params.putMap("fcm", fcmData);
-
-            array.pushMap(params);
-        }
+         }
         promise.resolve(array);
     }
 
